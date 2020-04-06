@@ -16,7 +16,7 @@ typedef struct complete_list//一个PCB对应一个complete_list节点，目的是给所有进程
 
 
 typedef struct PCB{
-	char PID[5];
+	char PID[5];	
 	int resource[4];//对应R1,R2,R3,R4
 	char status;//0:run, 1:ready, 2:block,3:none
 	struct wlist* list;//0:ready list; 1:block list; 2:NULL(running)
@@ -295,11 +295,13 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两个函数后面
 		//input
 		printf("shell> ");
 		gets(usrcmd);
-		//recognise
+		//recognise	
 		judge=judgeSpace(usrcmd);
-		if (judge==1)
-			cmd=strtok(usrcmd," ");
-		//bug预警***cmd为usrcmd第一个空格前的部分
+		if (judge==1){
+			if (usrcmd[0]==' ') {printf("Illegal comand!";continue;)}
+			else
+				cmd=strtok(usrcmd," ");}
+		//应该先处理无参数命令，再使用strtok函数分隔后处理含参命令
 		else if(judge==0)
 			strcpy(cmd,usrcmd);
 
@@ -309,6 +311,10 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两个函数后面
 		else if (!strcmp(cmd,"cr")){
 			para1=strtok(NULL," ");
 			para2=strtok(NULL," ");
+			if (para1==NULL){
+				printf("parameter error\n");
+				continue;
+			}
 			strcpy(PID,para1);
 			if (para2=="2") priority='2';
 			else if (para2=="1") priority='1';
@@ -325,7 +331,7 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两个函数后面
 				//call func
 			else if (!strcmp(para1,"res"))
 				//call func
-			else {printf("无此命令，请重新输入\n"); continue;}
+			else {printf("parameter error\n"); continue;}
 		}
 		
 		else if (!strcmp(cmd,"to"))
@@ -333,6 +339,10 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两个函数后面
 		else if (!strcmp(cmd,"req")){
 			para1=strtok(NULL," ");
 			para2=strtok(NULL," ");
+			if (para1==NULL){
+				printf("parameter error\n");
+				continue;
+			}
 			strcpy(resource,para1);
 			
 			if (para2=="4") n=4;
@@ -345,6 +355,10 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两个函数后面
 		else if (!strcmp(cmd,"rel")){
 			para1=strtok(NULL," ");
 			para2=strtok(NULL," ");
+			if (para1==NULL){
+				printf("parameter error\n");
+				continue;
+			}
 			strcpy(resource,para1);
 			
 			if (para2=="4") n=4;
@@ -356,6 +370,10 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两个函数后面
 		}
 		else if (!strcmp(cmd,"de")){
 			para1=strtok(NULL," ");
+			if (para1==NULL){
+				printf("parameter error\n");
+				continue;
+			}
 			strcpy(PID,para1);
 			//call function
 		}
@@ -380,11 +398,3 @@ int main(){
 	test_shell();
 	return 0;
 }
-
-int init();//创建init进程，初始化
-int create(char* PID, char priority);//新建进程
-int destroy(char* PID);//销毁进程及其子进程
-int kill_tree(struct PCB* p);//被destroy（）调用，用于销毁子进程
-int rfree(struct PCB* p);//释放被销毁的进程占用的资源
-int time_out();//产生系统中断，重新调度进程
-int scheduler();//用于调度进程
