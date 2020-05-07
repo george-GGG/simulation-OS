@@ -2,34 +2,30 @@
 #include<stdlib.h>
 #include<string.h>
 
-//¶¨Òå½á¹¹Ìå
-typedef struct wlist{//waiting_list:ready list,block listµÄ½Úµã
-	struct PCB* p;//Ö¸Ïò¶ÔÓ¦PCB
-	struct wlist* next;
-}wlist;
-
-typedef struct complete_list//Ò»¸öPCB¶ÔÓ¦Ò»¸öcomplete_list½Úµã£¬Ä¿µÄÊÇ¸øËùÓĞ½ø³Ì£¨¿ÉÄÜ´¦ÓÚ²»Í¬×´Ì¬£©½¨Á¢Ò»¸öË÷ÒıÁĞ±í£¬·½±ã¼ìË÷¡£
+//å®šä¹‰ç»“æ„ä½“
+typedef struct inode//ç´¢å¼•èŠ‚ç‚¹ï¼Œç›®çš„æ˜¯ç»™æ‰€æœ‰è¿›ç¨‹ï¼ˆå¯èƒ½å¤„äºä¸åŒçŠ¶æ€ï¼‰å»ºç«‹ä¸€ä¸ªç´¢å¼•åˆ—è¡¨ï¼Œæ–¹ä¾¿æ£€ç´¢ã€‚
 {
 	PCB* pcb;
-	complist* next;
-}complist;
+	inode* next;
+}inode;
 
 
 typedef struct PCB{
 	char PID[5];	
-	int resource[4];//¶ÔÓ¦R1,R2,R3,R4
+	int occupied_resource[4];//å·²åˆ†é…çš„èµ„æºï¼Œå¯¹åº”R1,R2,R3,R4
+	int waiting_resource[4];//ç­‰å¾…åˆ†é…çš„èµ„æº
 	char status;//0:run, 1:ready, 2:block,3:none
-	struct wlist* list;//0:ready list; 1:block list; 2:NULL(running)
-	struct PCB* parent;//¸¸½ø³ÌÖ»ÓĞÒ»¸ö£¬ËùÒÔÖ±½ÓÖ¸ÏòÆäPCB
-	struct wlist* children;//×Ó½ø³Ì²»Ö¹Ò»¸ö£¬ËùÒÔÒª½¨Ò»¸öwlistÁĞ±í£¬wlistÃ¿¸ö½ÚµãÖ¸Ïò¶ÔÓ¦×Ó½ø³ÌPCB
+	int list;//-1:running; 0:ready list; 1-4: waiting list
+	inode* parent;//çˆ¶è¿›ç¨‹åªæœ‰ä¸€ä¸ª
+	inode* children;//å­è¿›ç¨‹ä¸æ­¢ä¸€ä¸ªï¼Œæ‰€ä»¥è¦å»ºä¸€ä¸ªinodeåˆ—è¡¨ï¼Œinodeæ¯ä¸ªèŠ‚ç‚¹æŒ‡å‘å¯¹åº”å­è¿›ç¨‹PCB
 	char priority;//0,1,2
 }PCB;
 
 
 /*
 struct rlist{//ready_list
-	char priority;//¼ÇÂ¼´Ë½Úµã¶ÔÓ¦µÄÓÅÏÈ¼¶
-	struct PCB* p;//Ö¸Ïò¶ÔÓ¦PCB
+	char priority;//è®°å½•æ­¤èŠ‚ç‚¹å¯¹åº”çš„ä¼˜å…ˆçº§
+	struct PCB* p;//æŒ‡å‘å¯¹åº”PCB
 	struct rlist* next;
 };
 */
@@ -38,18 +34,29 @@ typedef struct RCB{
 	char RID[5];
 	int initial_number;
 	int available_number;
-	struct wlist* p;//waiting list
+	inode* p;//waiting list
 }RCB;
 
-//È«¾Ö±äÁ¿,Íµ¸öÀÁ£¬Ò»¿ªÊ¼¾ÍÉùÃ÷È«¾Ö±äÁ¿¶ø²»ÊÇÔÚµ÷ÓÃinit£¨£©Ö®ºó£¬ÕâÑù¾Í²»ÓÃ¿¼ÂÇË«ÖØÖ¸Õë£¬¸ü¼òµ¥¡£
-//struct PCB** block_list;//²»ĞèÒªµ¥¶ÀµÄ×èÈûĞòÁĞ
-//struct PCB** running_process;//ÓÃÈ«¾Ö±äÁ¿²»ĞèÒª¶ş¼¶Ö¸Õë
-complist* comp_list;//comp_listÍ·Ö¸Õë
-wlist ready_list[3];//¶ÔÓ¦Èı¸öÓÅÏÈ¼¶0,1,2
-PCB* running;
-RCB resource_list[4];
+//å…¨å±€å˜é‡,å·ä¸ªæ‡’ï¼Œä¸€å¼€å§‹å°±å£°æ˜å…¨å±€å˜é‡è€Œä¸æ˜¯åœ¨è°ƒç”¨initï¼ˆï¼‰ä¹‹åï¼Œè¿™æ ·å°±ä¸ç”¨è€ƒè™‘åŒé‡æŒ‡é’ˆï¼Œæ›´ç®€å•ã€‚
+//struct PCB** block_list;//ä¸éœ€è¦å•ç‹¬çš„é˜»å¡åºåˆ—
+//struct PCB** running_process;//ç”¨å…¨å±€å˜é‡ä¸éœ€è¦äºŒçº§æŒ‡é’ˆ
+inode* index_list;//comp_listå¤´æŒ‡é’ˆ
+inode* running;
+inode* ready_list[3]={NULL};//å¯¹åº”ä¸‰ä¸ªä¼˜å…ˆçº§0,1,2
+//inode waiting_list;//å„èµ„æºçš„RCBè‡ªå·±ç»´æŠ¤è‡ªå·±çš„é˜»å¡é˜Ÿåˆ—
+RCB resources[4];//å››ç§èµ„æº
+//åˆå§‹åŒ–
+index_list=NULL;
+running=NULL;
+int i;
+for(i=0;i<3;i++){
+	ready_list[i]=(inode*)malloc(sizeof(inode));//è®°å¾—æœ€åè¦freeè¿™å‡ å—å†…å­˜******
+}
+//ready_list=NULL;
 
-//º¯ÊıÉùÃ÷,¼ÓÉùÃ÷±ÜÃâº¯Êı¶¨ÒåË³ĞòÓ°Ïìµ÷ÓÃ
+
+
+//å‡½æ•°å£°æ˜,åŠ å£°æ˜é¿å…å‡½æ•°å®šä¹‰é¡ºåºå½±å“è°ƒç”¨
 int schedule();
 int init();
 int create(char* PID, char priority);
@@ -60,336 +67,12 @@ int release(char* RID, int n);
 int kill_tree(struct PCB* p);
 int time_out();
 int judgeSpace(char* str);
-
-int schedule(){
-	struct wlist* p;//¼ÇÂ¼ÓÅÏÈ¼¶×î¸ßµÄ½ø³Ì
-	struct wlist* q;//ÓÃÓÚ±éÀúwlist
-	struct wlist* add;//ĞÂ½¨ready_list½Úµã
-	int prior_p, prior_running;
-	//find highest piority process p
-	if (ready_list[2].next !=NULL) p=ready_list[2].next;
-	else if (ready_list[1].next!=NULL) p=ready_list[1].next;
-	else p=ready_list[0].next;
-
-	//ÅĞ¶ÏÊÇ·ñÂú×ãÈı¸öÌõ¼şÖĞµÄÈÎºÎÒ»¸ö,Âú×ãÔòÇÀÕ¼
-	prior_p=(int)p->p->priority;
-	//Ìõ¼ş5
-	if (running==NULL){
-		ready_list[prior_p].next=p->next;//´ÓµÈ´ıĞòÁĞÖĞÒÆ³ıp½ø³Ì
-		running=p->p;//½«p·ÅÈëÔËĞĞ½ø³Ì
-		printf("* process %s is running\n",p->p->PID);
-	}
-	//Ìõ¼ş3¡¢4
-	prior_running=(int)running->priority;
-	if (prior_p > prior_running || running->status!='0'){
-		ready_list[prior_p].next=p->next;//´ÓµÈ´ıĞòÁĞÖĞÒÆ³ıp½ø³Ì
-		//½«running½ø³ÌÒÆÈë¶ÔÓ¦µÈ´ıĞòÁĞÎ²
-		add=(struct wlist*)malloc(sizeof(struct wlist));
-		add->next=NULL;
-		add->p=running;
-		q=ready_list[prior_running].next;
-		if (q==NULL) ready_list[prior_running].next=add;
-		while(q!=NULL){
-			if (q->next==NULL) {q->next=add;break;}
-			else q=q->next;
-		}
-		//½«p·ÅÈëÔËĞĞ½ø³Ì
-		running=p->p;
-		printf("* process %s is running\n",p->p->PID);
-	}
-}
-
-int init(){
-	int i;
-	struct PCB* p;//Ö¸ÏòĞÂ½¨µÄinit PCB
-	p=(struct PCB*)malloc(sizeof(struct PCB));//create PCB of init
-
-	//p³õÊ¼»¯
-	p->parent=NULL;
-	p->children=NULL;
-	strcpy(p->PID,"init");//PID
-	p->status='0';
-	p->list=NULL;//NULL±íÊ¾ÕıÔÚÔËĞĞ
-	p->priority='0';
-	for (i=0;i<4;i++)
-		p->resource[i]=0;
-
-	running=p;//¼ÓÈëruningĞòÁĞ
-	printf("* process init is running");
-	return 1;
-
-}
-
-int create(char* PID, char priority){
-	int i;
-	struct PCB* p;//Ö¸ÏòĞÂ´´½¨µÄPCB
-	struct wlist* q;//ÓÃÓÚ±éÀú¸÷wlistÀàĞÍµÄÁ´±í
-	struct wlist* add;//Ö¸ÏòĞÂ½¨µÄwlist½Úµã
-
-	p=(struct PCB*)malloc(sizeof(struct PCB));//´´½¨ĞÂPCB
-	//³õÊ¼»¯PCB
-	strcpy(p->PID,PID);//PID
-	p->priority=priority;//priority
-	p->status='1';
-	p->list= ready_list;
-	p->parent=running;//½«ÕıÔÚÔËĞĞµÄ½ø³ÌÉèÎª¸¸½ø³Ì
-	//½«´Ë½ø³Ì¼ÓÈë¸¸½ø³ÌµÄ×Ó½ø³ÌÁĞ±í
-	add=(struct wlist*)malloc(sizeof(struct wlist));
-	add->p=p;
-	add->next=NULL;
-	q=running->children;//ÓÃq±éÀúrunning½ø³ÌµÄ×Ó½ø³Ì
-	if (q==NULL) running->children=add;
-	while(q!=NULL){
-		if (q->next==NULL) {q->next=add;break;}
-		else q=q->next;
-	}
-
-	p->children=NULL;
-	for (i=0;i<4;i++)
-		p->resource[i]=0;
-
-	//Ìí¼Ó½øready_list
-	add=(struct wlist*)malloc(sizeof(struct wlist));
-	add->p=p;//ready_list½ÚµãÖ¸ÏòPCB,Ò»Ò»¶ÔÓ¦******
-	add->next=NULL;
-	if (priority=='0'){
-		q=&ready_list[0];
-		if (q->next==NULL)
-			q->next=add;
-		else {
-			do{
-				q=q->next;
-			}while (q->next!=NULL);
-			q->next=add;
-		}
-	}
-	else if (priority=='1'){
-		q=&ready_list[1];
-		if (q->next==NULL)
-			q->next=add;
-		else {
-			do{
-				q=q->next;
-			}while (q->next!=NULL);
-			q->next=add;
-		}
-	}
-	else if (priority=='2'){
-		q=&ready_list[2];
-		if (q->next==NULL)
-			q->next=add;
-		else {
-			do{
-				q=q->next;
-			}while (q->next!=NULL);
-			q->next=add;
-		}
-	}
-	else return 0;
-	schedule();
-}
-
-int destroy(char* PID){//½«ËùÓĞ×Ó½ø³Ì¶¼É±µôÖ®ºó²Åschedule//***********Î´Íê³Éupdate
-	//1¡¢ÒÀ´Î´ÓrunningĞòÁĞ¡¢readyĞòÁĞ¡¢blockĞòÁĞÖĞÑ°ÕÒPID¶ÔÓ¦µÄp
-	//2¡¢¶Ôpµ÷ÓÃrfree()
-	//3¡¢updateËùÓĞÓëpÓĞ¹ØµÄÖ¸ÕëºÍ¶ÓÁĞ£¬free£¨p£©
-	//4¡¢¶ÔpµÄËùÓĞ×Ó½ø³Ìµİ¹éµ÷ÓÃdestroy£¨£©
-	//schedule()
-	int i;
-	struct wlist* q;//ÓÃÓÚ±éÀúwlist
-	struct PCB* p;
-	p=NULL;
-	q=NULL;
-	//search in running
-	if (!strcmp(running->PID,PID)) p=running;
-	else {
-		//search in ready_list
-		for (i=0;i<3;i++){
-			if (ready_list[i].next==NULL) continue;
-			q=ready_list[i].next;
-			while(q!=NULL){
-				if (q->p->PID==PID) {
-					p=q;
-					q->
-					i=2;//½áÊøÍâÑ­»·******
-					break;}
-				else q=q->next;
-			}
-		}
-		if (p==NULL){//Èô»¹Ã»ÕÒµ½p,ÔòÔÚblock¶ÓÁĞÖĞÕÒ
-			//search in block list
-			for (i=0;i<4;i++){
-				if (resource_list[i].p==NULL) continue;
-			q=resource_list[i].p;
-			while(q!=NULL){
-				if (q->p->PID==PID) {
-					p=q;
-					i=2;//½áÊøÍâÑ­»·******
-					break;}
-				else q=q->next;
-				}
-			}
-		}
-	}
-	//rfree(p)
-	rfree(p);
-
-}
-
-int rfree(struct PCB* p){
-	//½«pÕ¼ÓÃµÄ×ÊÔ´ÊÍ·Å£¬source_listÁĞ±íÏàÓ¦×ÊÔ´ÖµÔö¼Ó
-	int i;
-	for (i=0;i<4;i++)
-		resource_list[i]+=p->resource[i]
-}
-
-int request(char* PID, char* RID){
-
-}
-
-int release(char* RID, int n, struct RCB* resource_list, struct wlist* ready_list, struct PCB** running_process, struct PCB* running){
-
-}
-
-int kill_tree(struct PCB* p){
-
-}
-
-int time_out(){
-
-}
-
-
-int process_manager(char* PID, struct PCB** ready_list, struct PCB** block_list){
-	//ready to block
-	//block to ready
-	return 0;
-}
-
-int resource_manager(char* RID, struct RCB** resource_list){
-
-}
-
-int judgeSpace(char* str){//ÅĞ¶ÏÊäÈëÓï¾äÊÇ·ñÓĞ¿Õ¸ñ
-	int i;
-	for (i=0;i<strlen(str);i++)
-		if (str[i]==' ') return 1;
-	if (i==strlen(str)) return 0;
-}
-
-int test_shell(){//Òªµ÷ÓÃ½ø³Ì¹ÜÀíºÍ×ÊÔ´¹ÜÀíÆ÷£¬ËùÒÔ·ÅÔÚÇ°Á½¸öº¯ÊıºóÃæ
-	char usrcmd[30];//record usr comand
-	char* cmd;//ÊäÈë×Ö·û´®µÚÒ»¸ö¿Õ¸ñÖ®Ç°µÄÄÚÈİ
-	char* para1;//parameters
-	char* para2;
-	int judge;
-	char PID[10];//process id
-	char priority;
-	int n;//number of resource
-	char resource[5];
-	printf("designed by Chen Zhiguo\n");
-	printf("ÊäÈëexitÍË³ö\n\n");
-	printf("************************************\n");
-	
-	while(1){
-		//input
-		printf("shell> ");
-		gets(usrcmd);
-		//recognise	
-		judge=judgeSpace(usrcmd);
-		if (judge==1){
-			if (usrcmd[0]==' ') {printf("Illegal comand!";continue;)}
-			else
-				cmd=strtok(usrcmd," ");}
-		//Ó¦¸ÃÏÈ´¦ÀíÎŞ²ÎÊıÃüÁî£¬ÔÙÊ¹ÓÃstrtokº¯Êı·Ö¸ôºó´¦Àíº¬²ÎÃüÁî
-		else if(judge==0)
-			strcpy(cmd,usrcmd);
-
-		if (!strcmp(cmd,"init"))
-			init();
-
-		else if (!strcmp(cmd,"cr")){
-			para1=strtok(NULL," ");
-			para2=strtok(NULL," ");
-			if (para1==NULL){
-				printf("parameter error\n");
-				continue;
-			}
-			strcpy(PID,para1);
-			if (para2=="2") priority='2';
-			else if (para2=="1") priority='1';
-			else if (para2=="0") priority='0';
-			else {printf("ÓÅÏÈ¼¶´íÎó£¬ÇëÖØĞÂÊäÈëÃüÁî\n"); continue;}
-			//call function
-			create(PID,priority);
-		}
-		else if (!strcmp(cmd,"list")){
-			para1=strtok(NULL," ");//¼ÌĞø·Ö¸îusrcmd
-			if (!strcmp(para1,"ready"))
-				//call func
-			else if (!strcmp(para1,"block"))
-				//call func
-			else if (!strcmp(para1,"res"))
-				//call func
-			else {printf("parameter error\n"); continue;}
-		}
-		
-		else if (!strcmp(cmd,"to"))
-			//call function
-		else if (!strcmp(cmd,"req")){
-			para1=strtok(NULL," ");
-			para2=strtok(NULL," ");
-			if (para1==NULL){
-				printf("parameter error\n");
-				continue;
-			}
-			strcpy(resource,para1);
-			
-			if (para2=="4") n=4;
-			else if (para2=="3") n=3;
-			else if (para2=="2") n=2;
-			else if (para2=="1") n=1;
-			else {printf("²ÎÊı´íÎó£¬ÇëÖØĞÂÊäÈëÃüÁî\n"); continue;}
-			//call function
-		}
-		else if (!strcmp(cmd,"rel")){
-			para1=strtok(NULL," ");
-			para2=strtok(NULL," ");
-			if (para1==NULL){
-				printf("parameter error\n");
-				continue;
-			}
-			strcpy(resource,para1);
-			
-			if (para2=="4") n=4;
-			else if (para2=="3") n=3;
-			else if (para2=="2") n=2;
-			else if (para2=="1") n=1;
-			else {printf("²ÎÊı´íÎó£¬ÇëÖØĞÂÊäÈëÃüÁî\n"); continue;}
-			//call function
-		}
-		else if (!strcmp(cmd,"de")){
-			para1=strtok(NULL," ");
-			if (para1==NULL){
-				printf("parameter error\n");
-				continue;
-			}
-			strcpy(PID,para1);
-			//call function
-		}
-		else if (!strcmp(cmd,"exit"))
-			exit(0);
-		else  
-		   {printf("ÎŞ´ËÃüÁî,ÇëÖØĞÂÊäÈë\n");continue;}
-
-	}
-	return 0;
-}
+int test_shell();
 
 int main(){
 	int i;
-//	running_process=&running;//ÓÃ¶ş¼¶Ö¸Õë²ÅÄÜÔÚÆäËûº¯ÊıÀï¸Ä±äÖµ
-	//Ö¸Õë³õÊ¼»¯ÎªNULL
+//	running_process=&running;//ç”¨äºŒçº§æŒ‡é’ˆæ‰èƒ½åœ¨å…¶ä»–å‡½æ•°é‡Œæ”¹å˜å€¼
+	//æŒ‡é’ˆåˆå§‹åŒ–ä¸ºNULL
 	running=NULL;
 	for (i=0;i<3;i++)
 		ready_list[i].next=NULL;
