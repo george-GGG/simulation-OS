@@ -1,28 +1,31 @@
+#include"struct.h"
+
 int create(char* PID, char priority){
 	int i;
 	PCB* p;//指向新创建的PCB
-	inode* q;//用于遍历各wlist类型的链表
-	inode* add;//指向新建的wlist节点
+	inode* q;//用于遍历各inode类型的链表
+	inode* add;//指向新建的inode节点
 
 	p=(PCB*)malloc(sizeof(PCB));//创建新PCB
 	//初始化PCB
 	strcpy(p->PID,PID);//PID
 	p->priority=priority;//priority
-	p->status='1';
-	p->list= 0;
+	p->status='1';//ready
+	p->list= 0; //ready list
 	p->parent=running;//将正在运行的进程设为父进程
 	//将此进程加入父进程的子进程列表
 	add=(inode*)malloc(sizeof(inode));
 	add->pcb=p;
 	add->next=NULL;
 	q= running->pcb->children;//用q遍历running进程的子进程
-	if (q==NULL) running->pcb->children=add;
-	while(q!=NULL){
-		if (q->next==NULL) {q->next=add;break;}
-		else q=q->next;
-	}//插入children对列末尾
+	while(q->next!=NULL){
+		q=q->next;
+	}
+    q->next=add;//插入children对列末尾
 
-	p->children=NULL;
+	p->children=(inode*)malloc(sizeof(inode));
+    p->children->next=NULL;//孩子队列带头节点
+
 	for (i=0;i<4;i++){
 		p->occupied_resource[i]=0;
 		p->waiting_resource[i]=0;}
@@ -32,37 +35,25 @@ int create(char* PID, char priority){
 	add->pcb=p;//ready_list节点指向PCB,一一对应******
 	add->next=NULL;
 	if (priority=='0'){
-		q=&ready_list[0];
-		if (q->next==NULL)
-			q->next=add;
-		else {
-			do{
-				q=q->next;
-			}while (q->next!=NULL);
-			q->next=add;
-		}
+		q=ready_list[0];
+		while(q->next!=NULL){
+            q=q->next;
+        }
+        q->next=add;
 	}
 	else if (priority=='1'){
-		q=&ready_list[1];
-		if (q->next==NULL)
-			q->next=add;
-		else {
-			do{
-				q=q->next;
-			}while (q->next!=NULL);
-			q->next=add;
-		}
+		q=ready_list[1];
+		while(q->next!=NULL){
+            q=q->next;
+        }
+        q->next=add;
 	}
 	else if (priority=='2'){
-		q=&ready_list[2];
-		if (q->next==NULL)
-			q->next=add;
-		else {
-			do{
-				q=q->next;
-			}while (q->next!=NULL);
-			q->next=add;
-		}
+		q=ready_list[2];
+		while(q->next!=NULL){
+            q=q->next;
+        }
+        q->next=add;
 	}
 	else return 0;
 	schedule();

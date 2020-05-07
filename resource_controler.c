@@ -1,3 +1,4 @@
+#include"struct.h"
 int request(char* PID, char* RID){
 
 }

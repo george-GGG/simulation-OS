@@ -1,3 +1,4 @@
+#include"struct.h"
 int judgeSpace(char* str){//判断输入语句是否有空格
 	int i;
 	for (i=0;i<strlen(str);i++)

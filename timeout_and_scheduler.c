@@ -1,3 +1,4 @@
+#include"struct.h"
 int schedule(){
 	inode* p;//记录优先级最高的进程
 	inode* q;//用于遍历wlist
