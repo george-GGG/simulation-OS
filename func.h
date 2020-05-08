@@ -1,0 +1,12 @@
+int schedule();
+int init();
+int create(char* PID, char priority);
+int destroy(char* PID);
+int rfree(struct PCB* p);
+int request(char* RID, int n);
+int release(char* RID, int n);
+int kill_tree(struct PCB* p);
+int time_out();
+int judgeSpace(char* str);
+int test_shell();
+int list_insert(inode* list,inode node);

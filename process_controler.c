@@ -1,4 +1,4 @@
-#include"struct.h"
+#include"global.h"
 
 int create(char* PID, char priority){
 	int i;
@@ -13,6 +13,16 @@ int create(char* PID, char priority){
 	p->status='1';//ready
 	p->list= 0; //ready list
 	p->parent=running;//将正在运行的进程设为父进程
+	//创建索引节点并加入com_list
+	add=(inode*)malloc(sizeof(inode));
+	add->pcb=p;
+	add->next=NULL;
+	q= comp_list;//用q遍历running进程的子进程
+	while(q->next!=NULL){
+		q=q->next;
+	}
+    q->next=add;
+
 	//将此进程加入父进程的子进程列表
 	add=(inode*)malloc(sizeof(inode));
 	add->pcb=p;
@@ -22,10 +32,10 @@ int create(char* PID, char priority){
 		q=q->next;
 	}
     q->next=add;//插入children对列末尾
-
+	//孩子节点
 	p->children=(inode*)malloc(sizeof(inode));
     p->children->next=NULL;//孩子队列带头节点
-
+	//资源初始化
 	for (i=0;i<4;i++){
 		p->occupied_resource[i]=0;
 		p->waiting_resource[i]=0;}
@@ -60,49 +70,12 @@ int create(char* PID, char priority){
 }
 
 int destroy(char* PID){//将所有子进程都杀掉之后才schedule//***********未完成update
-	//1、依次从running序列、ready序列、block序列中寻找PID对应的p
-	//2、对p调用rfree()
-	//3、update所有与p有关的指针和队列，free（p）
-	//4、对p的所有子进程递归调用destroy（）
+	//从com_list中找到对应inode（保存该inode，以便最后free pcb），进而找到进程pcb
+	//将pcb在各个队列中的inode找到并删除
+	//回收被该进程占用的资源
+	//对pcb的子进程调用destroy
+	//free（inode），回收该pcb的内存
 	//schedule()
-	int i;
-	struct wlist* q;//用于遍历wlist
-	struct PCB* p;
-	p=NULL;
-	q=NULL;
-	//search in running
-	if (!strcmp(running->PID,PID)) p=running;
-	else {
-		//search in ready_list
-		for (i=0;i<3;i++){
-			if (ready_list[i].next==NULL) continue;
-			q=ready_list[i].next;
-			while(q!=NULL){
-				if (q->p->PID==PID) {
-					p=q;
-					q->
-					i=2;//结束外循环******
-					break;}
-				else q=q->next;
-			}
-		}
-		if (p==NULL){//若还没找到p,则在block队列中找
-			//search in block list
-			for (i=0;i<4;i++){
-				if (resource_list[i].p==NULL) continue;
-			q=resource_list[i].p;
-			while(q!=NULL){
-				if (q->p->PID==PID) {
-					p=q;
-					i=2;//结束外循环******
-					break;}
-				else q=q->next;
-				}
-			}
-		}
-	}
-	//rfree(p)
-	rfree(p);
 
 }
 
