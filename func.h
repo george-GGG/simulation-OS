@@ -9,4 +9,5 @@ int kill_tree(struct PCB* p);
 int time_out();
 int judgeSpace(char* str);
 int test_shell();
-int list_insert(inode* list,inode node);
+int list_insert(inode* list,inode* node);
+int list_delete(inode* list,char *PID);

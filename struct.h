@@ -20,7 +20,7 @@ typedef struct PCB{
 }PCB;
 
 typedef struct RCB{
-	char RID[5];
+	//char RID[5];
 	int initial_number;
 	int available_number;
 	inode* p;//waiting list

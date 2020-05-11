@@ -10,8 +10,28 @@ inode* ready_list[3]={NULL};//对应三个优先级0,1,2，init中初始化
 //inode waiting_list;//各资源的RCB自己维护自己的阻塞队列
 RCB resources[4];//四种资源，init中初始化
 
-int list_insert(inode* list,inode node){
+int list_insert(inode* list,inode* node){//传入的是inode
 	//插入队列操作
+	inode *p;
+	p=list;
+	while(p->next!=NULL){
+		p=p->next;
+	}
+	node->next=p->next;
+	p->next=node;
+	return 0;//成功
+}
+int list_delete(inode* list,char * PID){//传入的是PID，不同于插入函数
+	//删除节点操作
+	inode *p,*q;//p用于遍历，q用于记录节点并free
+	p=list;
+	while(p->next!=NULL){
+		if (strcomp(p->next->pcb->PID,PID)==0) break;
+		else p=p->next;
+	}
+	q=p->next;
+	p->next=p->next->next;
+	free(q);
 }
 
 int main(){

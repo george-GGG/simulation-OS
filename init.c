@@ -1,8 +1,9 @@
 #include<stdio.h>
+#include<string.h>
 #include"global.h"
 #include"struct.h"
 int init(){
-	//队列初始化
+	//队列、资源初始化
 	int i;
 	comp_list=(inode*)malloc(sizeof(inode));//给comp_list建立头节点
 	comp_list->next=NULL;
@@ -11,23 +12,39 @@ int init(){
 		ready_list[i]=(inode*)malloc(sizeof(inode));//记得最后要free这几块内存******
 		ready_list[i]->next=NULL;
 	}
-	for (i=0;i<4;i++)
+	for (i=0;i<4;i++){
 		resources[i].p=NULL;
+		resources[i].initial_number=i+1;
+		resources[i].available_number=i+1;
+	}
 
-	struct PCB* p;//指向新建的init PCB
-	p=(struct PCB*)malloc(sizeof(struct PCB));//create PCB of init
+	//建立init进程
+	PCB* p;//指向新建的init PCB
+	inode *add;//inode节点
+	p=(PCB*)malloc(sizeof(PCB));//create PCB of init
 
 	//p初始化
 	p->parent=NULL;
 	p->children=NULL;
 	strcpy(p->PID,"init");//PID
 	p->status='0';
-	p->list=NULL;//NULL表示正在运行
+	p->list=-1;//NULL表示正在运行
 	p->priority='0';
-	for (i=0;i<4;i++)
-		p->resources[i]=0;
-
-	running=p;//加入runing序列
+	for (i=0;i<4;i++){
+		p->occupied_resource[i]=0;
+		p->waiting_resource[i]=0;
+	}
+	//加入comp_list队列
+	add=(inode*)malloc(sizeof(inode));
+	add->pcb=p;
+	add->next=NULL;
+	list_insert(comp_list,add);
+	//加入running序列
+	add=(inode*)malloc(sizeof(inode));
+	add->pcb=p;
+	add->next=NULL;
+	running=add;
+	
 	printf("* process init is running");
 	return 1;
 
