@@ -21,7 +21,7 @@ int list_insert(inode* list,inode* node){//传入的是inode
 	p->next=node;
 	return 0;//成功
 }
-int list_delete(inode* list,char * PID){//传入的是PID，不同于插入函数
+inode* list_delete(inode* list,char * PID){//传入的是PID，不同于插入函数
 	//删除节点操作
 	inode *p,*q;//p用于遍历，q用于记录节点并free
 	p=list;
@@ -31,7 +31,7 @@ int list_delete(inode* list,char * PID){//传入的是PID，不同于插入函�
 	}
 	q=p->next;
 	p->next=p->next->next;
-	free(q);
+	return q;//将q返回
 }
 
 int main(){

@@ -13,7 +13,8 @@ int init(){
 		ready_list[i]->next=NULL;
 	}
 	for (i=0;i<4;i++){
-		resources[i].p=NULL;
+		resources[i].p=(inode*)malloc(sizeof(inode));//头节点
+		resources[i].p->next=NULL;
 		resources[i].initial_number=i+1;
 		resources[i].available_number=i+1;
 	}

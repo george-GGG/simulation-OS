@@ -66,7 +66,8 @@ int create(char* PID, char priority){
         }
         q->next=add;
 	}
-	else return 0;
+	else 
+		return 0;
 	schedule();
 }
 
@@ -103,7 +104,8 @@ int destroy(char* PID){//将所有子进程都杀掉之后才schedule
 	switch (ls)
 	{
 	case -1:{
-		running=NULL;
+		running->next=NULL;
+		schedule();//将现有running进程终止之后有必要重新调度
 		break;}
 	case 0:{
 		pri=index->pcb->priority;
@@ -115,31 +117,28 @@ int destroy(char* PID){//将所有子进程都杀掉之后才schedule
 			p=ready_list[2];
 		list_delete(p,PID);
 		break;}
-	//阻塞队列，涉及资源回收*******
+	//阻塞队列
 	case 1:{
 		p=resources[0].p;
-		//调用资源释放函数，回收资源
 		list_delete(p,PID);
 		break;}
 	case 2:{
 		p=resources[1].p;
-		//调用资源释放函数，回收资源
 		list_delete(p,PID);
 		break;}
 	case 3:{
 		p=resources[2].p;
-		//调用资源释放函数，回收资源
 		list_delete(p,PID);
 		break;}
 	case 4:{
 		p=resources[3].p;
-		//调用资源释放函数，回收资源
 		list_delete(p,PID);
 		break;}
 	default:{
 		return -1;
 		break;}
 	}
+	rfree(index);
 	//回收内存
 	free(index);
 	return 0;
