@@ -1,9 +1,54 @@
-#include"struct.h"
+#include"global.h"
+#include<string.h>
 int judgeSpace(char* str){//判断输入语句是否有空格
 	int i;
 	for (i=0;i<strlen(str);i++)
 		if (str[i]==' ') return 1;
 	if (i==strlen(str)) return 0;
+}
+
+int disp_ready(){
+	int i;
+	inode *p;
+	printf("ready list:\n");
+	for (i=2;i>=0;i--){
+		printf(" %d: ",i);
+		p=ready_list[i]->next;
+		while(p!=NULL){
+			printf("-%s",p->pcb->PID);
+			p=p->next;
+		}
+		printf("\n");
+	}
+	printf("\n");
+	return 0;
+}
+
+int disp_block(){
+	int i;
+	inode *p;
+	printf("block list:\n");
+	for (i=0;i<4;i++){
+		printf(" R%d: ",i+1);
+		p=resources[i].p->next;
+		while(p!=NULL){
+			printf("-%s",p->pcb->PID);
+			p=p->next;
+		}
+		printf("\n");
+	}
+	printf("\n");
+	return 0;
+}
+
+int disp_resource(){
+	int i;
+	printf("resources:\n");
+	for (i=0;i<4;i++){
+		printf(" R%d: ",i+1);
+		printf("%d\n",resources[i].available_number);
+	}
+	return 0;
 }
 
 int test_shell(){//要调用进程管理和资源管理器，所以放在前两个函数后面
@@ -15,7 +60,6 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两�
 	char PID[10];//process id
 	char priority;
 	int n;//number of resource
-	char resource[5];
 	printf("designed by Chen Zhiguo\n");
 	printf("输入exit退出\n\n");
 	printf("************************************\n");
@@ -55,16 +99,16 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两�
 		else if (!strcmp(cmd,"list")){
 			para1=strtok(NULL," ");//继续分割usrcmd
 			if (!strcmp(para1,"ready"))
-				//call func
+				disp_ready();//call func
 			else if (!strcmp(para1,"block"))
-				//call func
+				disp_block();//call func
 			else if (!strcmp(para1,"res"))
-				//call func
+				disp_resource();//call func
 			else {printf("parameter error\n"); continue;}
 		}
 		
 		else if (!strcmp(cmd,"to"))
-			//call function
+			time_out();//call function
 		else if (!strcmp(cmd,"req")){
 			para1=strtok(NULL," ");
 			para2=strtok(NULL," ");
@@ -72,14 +116,12 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两�
 				printf("parameter error\n");
 				continue;
 			}
-			strcpy(resource,para1);
-			
 			if (para2=="4") n=4;
 			else if (para2=="3") n=3;
 			else if (para2=="2") n=2;
 			else if (para2=="1") n=1;
 			else {printf("参数错误，请重新输入命令\n"); continue;}
-			//call function
+			request(para1,n);//call function
 		}
 		else if (!strcmp(cmd,"rel")){
 			para1=strtok(NULL," ");
@@ -88,14 +130,12 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两�
 				printf("parameter error\n");
 				continue;
 			}
-			strcpy(resource,para1);
-			
 			if (para2=="4") n=4;
 			else if (para2=="3") n=3;
 			else if (para2=="2") n=2;
 			else if (para2=="1") n=1;
 			else {printf("参数错误，请重新输入命令\n"); continue;}
-			//call function
+			release(running->next,para1,n);//call function
 		}
 		else if (!strcmp(cmd,"de")){
 			para1=strtok(NULL," ");
@@ -104,7 +144,7 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两�
 				continue;
 			}
 			strcpy(PID,para1);
-			//call function
+			destroy(PID);//call function
 		}
 		else if (!strcmp(cmd,"exit"))
 			exit(0);
