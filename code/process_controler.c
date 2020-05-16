@@ -84,7 +84,7 @@ int destroy(char* PID){//将所有子进程都杀掉之后才schedule
 	inode *p,*q,*index;//index用于记录comp_list中对应inode节点
 	//寻找对应inode
 	index=comp_list->next;
-	while (index!=NULL && strcomp(index->pcb->PID,PID)!=0)
+	while (index!=NULL && strcmp(index->pcb->PID,PID)!=0)
 	{
 		index=index->next;
 	}

@@ -2,10 +2,10 @@
 #include<string.h>
 int request(char* RID, int n){
 	int r;
-	if (strcomp(RID,"R1")==0) r=0;
-	else if (strcomp(RID,"R2")==0) r=1;
-	else if (strcomp(RID,"R3")==0) r=2;
-	else if (strcomp(RID,"R4")==0) r=3;
+	if (strcmp(RID,"R1")==0) r=0;
+	else if (strcmp(RID,"R2")==0) r=1;
+	else if (strcmp(RID,"R3")==0) r=2;
+	else if (strcmp(RID,"R4")==0) r=3;
 	else { 
 		printf("parameter error,there is no this resource\n");
 		return -1;
@@ -46,18 +46,18 @@ int release(inode* proc,char* RID, int n){//proc指向要释放资源的进程�
 	int r,i;
 	inode* p;
 	if (n<=0) return -1;
-	if (strcomp(RID,"R1")==0) r=0;
-	else if (strcomp(RID,"R2")==0) r=1;
-	else if (strcomp(RID,"R3")==0) r=2;
-	else if (strcomp(RID,"R4")==0) r=3;
+	if (strcmp(RID,"R1")==0) r=0;
+	else if (strcmp(RID,"R2")==0) r=1;
+	else if (strcmp(RID,"R3")==0) r=2;
+	else if (strcmp(RID,"R4")==0) r=3;
 	else { 
 		printf("parameter error,there is no this resource\n");
 		return -1;
 	}
-	if (n>proc->pcb->occupied_resource[r]{
+	if (n>proc->pcb->occupied_resource[r]){
 		printf("parameter error, there is no so many resources\n");
 		return -1;
-	})
+	}
 	proc->pcb->occupied_resource[r]-=n;
 	resources[r].available_number+=n;
 

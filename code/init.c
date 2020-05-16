@@ -18,7 +18,7 @@ int init(){
 		resources[i].initial_number=i+1;
 		resources[i].available_number=i+1;
 	}
-
+	printf("varies inited\n");//debug
 	//建立init进程
 	PCB* p;//指向新建的init PCB
 	inode *add;//inode节点
@@ -47,6 +47,5 @@ int init(){
 	running=add;
 	
 	printf("* process init is running");
-	return 1;
-
+	return 0;
 }

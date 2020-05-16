@@ -10,3 +10,7 @@ int judgeSpace(char* str);
 int test_shell();
 int list_insert(inode* list,inode* node);
 inode* list_delete(inode* list,char *PID);
+int judgeSpace(char* str);
+int disp_ready();
+int disp_block();
+int disp_resource();
