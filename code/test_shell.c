@@ -5,6 +5,7 @@ int judgeSpace(char* str){//判断输入语句是否有空格
 	for (i=0;i<strlen(str);i++)
 		if (str[i]==' ') return 1;
 	if (i==strlen(str)) return 0;
+	else return -1;
 }
 
 int disp_ready(){
@@ -58,10 +59,10 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两�
 	char* para2;
 	int judge;
 	char PID[10];//process id
-	char priority;
+	int priority;
 	int n;//number of resource
-	printf("designed by Chen Zhiguo\n");
-	printf("输入exit退出\n\n");
+	printf("designed by GeorgeGGG\n");
+	printf("input 'exit' to exit\n\n");
 	printf("************************************\n");
 	
 	while(1){
@@ -76,7 +77,8 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两�
 				cmd=strtok(usrcmd," ");}
 		//应该先处理无参数命令，再使用strtok函数分隔后处理含参命令
 		else if(judge==0)
-			strcpy(cmd,usrcmd);
+			//strcpy(cmd,usrcmd);
+			cmd=usrcmd;//尝试直接赋值地址
 
 		if (!strcmp(cmd,"init"))
 			init();
@@ -89,10 +91,10 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两�
 				continue;
 			}
 			strcpy(PID,para1);
-			if (para2=="2") priority='2';
-			else if (para2=="1") priority='1';
-			else if (para2=="0") priority='0';
-			else {printf("优先级错误，请重新输入命令\n"); continue;}
+			if (*para2=='2') priority=2;
+			else if (*para2=='1') priority=1;
+			else if (*para2=='0') priority=0;
+			else {printf("priority error\n"); continue;}
 			//call function
 			create(PID,priority);
 		}
@@ -113,29 +115,29 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两�
 			para1=strtok(NULL," ");
 			para2=strtok(NULL," ");
 			if (para1==NULL){
-				printf("parameter error\n");
+				printf("parameter error1\n");
 				continue;
 			}
-			if (para2=="4") n=4;
-			else if (para2=="3") n=3;
-			else if (para2=="2") n=2;
-			else if (para2=="1") n=1;
-			else {printf("参数错误，请重新输入命令\n"); continue;}
+			if (*para2=='4') n=4;
+			else if (*para2=='3') n=3;
+			else if (*para2=='2') n=2;
+			else if (*para2=='1') n=1;
+			else {printf("parameter error2\n"); continue;}
 			request(para1,n);//call function
 		}
 		else if (!strcmp(cmd,"rel")){
 			para1=strtok(NULL," ");
 			para2=strtok(NULL," ");
 			if (para1==NULL){
-				printf("parameter error\n");
+				printf("parameter error1\n");
 				continue;
 			}
-			if (para2=="4") n=4;
-			else if (para2=="3") n=3;
-			else if (para2=="2") n=2;
-			else if (para2=="1") n=1;
-			else {printf("参数错误，请重新输入命令\n"); continue;}
-			release(running->next,para1,n);//call function
+			if (*para2=='4') n=4;
+			else if (*para2=='3') n=3;
+			else if (*para2=='2') n=2;
+			else if (*para2=='1') n=1;
+			else {printf("parameter error2\n"); continue;}
+			release(running,para1,n);//call function
 		}
 		else if (!strcmp(cmd,"de")){
 			para1=strtok(NULL," ");
@@ -149,7 +151,7 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两�
 		else if (!strcmp(cmd,"exit"))
 			exit(0);
 		else  
-		   {printf("无此命令,请重新输入\n");continue;}
+		   {printf("command error, try again\n");continue;}
 	}
 	return 0;
 }

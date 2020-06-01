@@ -1,7 +1,7 @@
 #include<string.h>
 #include"global.h"
 
-int create(char* PID, char priority){
+int create(char* PID, int priority){
 	int i;
 	PCB* p;//指向新创建的PCB
 	inode* q;//用于遍历各inode类型的链表
@@ -18,21 +18,13 @@ int create(char* PID, char priority){
 	add=(inode*)malloc(sizeof(inode));
 	add->pcb=p;
 	add->next=NULL;
-	q= comp_list;//用q遍历running进程的子进程
-	while(q->next!=NULL){
-		q=q->next;
-	}
-    q->next=add;
+	list_insert(comp_list,add);
 
 	//将此进程加入父进程的子进程列表
 	add=(inode*)malloc(sizeof(inode));
 	add->pcb=p;
 	add->next=NULL;
-	q= running->pcb->children;//用q遍历running进程的子进程
-	while(q->next!=NULL){
-		q=q->next;
-	}
-    q->next=add;//插入children对列末尾
+	list_insert(running->pcb->children,add);
 	//孩子节点
 	p->children=(inode*)malloc(sizeof(inode));
     p->children->next=NULL;//孩子队列带头节点
@@ -45,26 +37,14 @@ int create(char* PID, char priority){
 	add=(inode*)malloc(sizeof(inode));
 	add->pcb=p;//ready_list节点指向PCB,一一对应******
 	add->next=NULL;
-	if (priority=='0'){
-		q=ready_list[0];
-		while(q->next!=NULL){
-            q=q->next;
-        }
-        q->next=add;
+	if (priority==0){
+		list_insert(ready_list[0],add);
 	}
-	else if (priority=='1'){
-		q=ready_list[1];
-		while(q->next!=NULL){
-            q=q->next;
-        }
-        q->next=add;
+	else if (priority==1){
+		list_insert(ready_list[1],add);
 	}
-	else if (priority=='2'){
-		q=ready_list[2];
-		while(q->next!=NULL){
-            q=q->next;
-        }
-        q->next=add;
+	else if (priority==2){
+		list_insert(ready_list[2],add);
 	}
 	else 
 		return 0;
@@ -73,48 +53,65 @@ int create(char* PID, char priority){
 
 int destroy(char* PID){//将所有子进程都杀掉之后才schedule
 	//从com_list中找到对应inode（保存该inode，以便最后free pcb），进而找到进程pcb
-	//destroy所有子进程
 	//从父进程的子进程列表中删除此进程
+	//kill tree所有子进程
+	//schedule()
+	inode *p,*index;//index用于记录comp_list中对应inode节点
+	//寻找对应inode
+	index=comp_list->next;
+	while (index!=NULL)//strcmp条件有问题******
+	{
+		if (strcmp(index->pcb->PID,PID)==0) break;
+		else index=index->next;
+	}
+	if (index==NULL) return -1;//未找到该PID对应pcb
+	//删除父进程的子进程记录
+	p=index->pcb->parent->pcb->children;
+	list_delete(p,PID);
+	//kill tree所有子进程
+	kill_tree(PID);
+	//调度
+	schedule();
+	return 0;
+}
+int kill_tree(char *PID){
+	//kill tree所有子进程
 	//删除所有列表中此进程的索引节点
 	//回收被该进程占用的资源
 	//free（index），回收该pcb的内存
-	//schedule()
 	int ls;//记录pcb所在队列
-	char pri;//进程优先级
-	inode *p,*q,*index;//index用于记录comp_list中对应inode节点
+	int pri;//进程优先级
+	inode *p,*q,*pre;//index用于记录comp_list中对应inode节点
 	//寻找对应inode
-	index=comp_list->next;
-	while (index!=NULL && strcmp(index->pcb->PID,PID)!=0)
+	pre=comp_list;
+	while (pre->next!=NULL)//strcmp条件有问题******
 	{
-		index=index->next;
+		if (strcmp(pre->next->pcb->PID,PID)==0) break;
+		else pre=pre->next;
 	}
-	if (index->next==NULL) return -1;//未找到该PID对应pcb
-	//destroy所有子进程
-	p=index->pcb->children;
+	if (pre->next==NULL) return -1;//未找到该PID对应pcb
+	//kill tree所有子进程
+	p=pre->next->pcb->children;
 	while (p->next!=NULL)
 	{
-		destroy(p->next->pcb->PID);
-		p=p->next;
+		kill_tree(p->next->pcb->PID);
+		q=p->next;
+		p->next=q->next;
+		free(q);
 	}
-	//删除父进程的记录
-	p=index->pcb->parent->pcb->children;
-	list_delete(p,PID);
-	//删除所有列表中此进程的索引节点,回收占有的资源
-	ls=index->pcb->list;
+	//删除队列中此进程的索引节点,回收占有的资源
+	ls=pre->next->pcb->list;
 	switch (ls)
 	{
 	case -1:{
-		running->next=NULL;
-		schedule();//将现有running进程终止之后有必要重新调度
+		q=running;
+		running=NULL;
+		free(q);
+		//schedule();//将现有running进程终止之后有必要重新调度
 		break;}
 	case 0:{
-		pri=index->pcb->priority;
-		if (pri=='0')
-			p=ready_list[0];
-		else if (pri=='1')
-			p=ready_list[1];
-		else 
-			p=ready_list[2];
+		pri=pre->next->pcb->priority;
+		p=ready_list[pri];
 		list_delete(p,PID);
 		break;}
 	//阻塞队列
@@ -128,7 +125,7 @@ int destroy(char* PID){//将所有子进程都杀掉之后才schedule
 		break;}
 	case 3:{
 		p=resources[2].p;
-		list_delete(p,PID);
+		list_delete(p,PID); 
 		break;}
 	case 4:{
 		p=resources[3].p;
@@ -138,8 +135,12 @@ int destroy(char* PID){//将所有子进程都杀掉之后才schedule
 		return -1;
 		break;}
 	}
-	rfree(index);
+	q=pre->next;
+	rfree(q);
 	//回收内存
-	free(index);
+	pre->next=q->next;//删除comp_list中的节点
+	free(q->pcb);//回收pcb
+	free(q);
+	printf("%s has been destroyed\n",PID);
 	return 0;
 }

@@ -21,7 +21,7 @@ int list_insert(inode* list,inode* node){//传入的是inode
 	p->next=node;
 	return 0;//成功
 }
-inode* list_delete(inode* list,char * PID){//传入的是PID，不同于插入函数
+int list_delete(inode* list,char * PID){//传入的是PID，不同于插入函数
 	//删除节点操作
 	inode *p,*q;//p用于遍历，q用于记录节点并free
 	p=list;
@@ -29,9 +29,11 @@ inode* list_delete(inode* list,char * PID){//传入的是PID，不同于插入�
 		if (strcmp(p->next->pcb->PID,PID)==0) break;
 		else p=p->next;
 	}
+	if (p->next==NULL) return -1;
 	q=p->next;
 	p->next=p->next->next;
-	return q;//将q返回
+	free(q);
+	return 0;//将q返回
 }
 
 int main(){

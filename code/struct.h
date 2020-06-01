@@ -17,7 +17,7 @@ struct PCB{
 	int list;//-1:running; 0:ready list; 1-4: waiting list
 	struct inode* parent;//父进程只有一个
 	struct inode* children;//子进程不止一个，所以要建一个inode列表，inode每个节点指向对应子进程PCB
-	char priority;//0,1,2
+	int priority;//0,1,2
 };
 typedef struct PCB PCB;
 

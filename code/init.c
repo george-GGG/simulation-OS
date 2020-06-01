@@ -25,12 +25,13 @@ int init(){
 	p=(PCB*)malloc(sizeof(PCB));//create PCB of init
 
 	//p初始化
-	p->parent=NULL;
-	p->children=NULL;
+	p->parent=NULL;//parent不是队列，没有头节点
+	p->children=(inode*)malloc(sizeof(inode));
+	p->children->next=NULL;
 	strcpy(p->PID,"init");//PID
 	p->status='0';
 	p->list=-1;//NULL表示正在运行
-	p->priority='0';
+	p->priority=0;
 	for (i=0;i<4;i++){
 		p->occupied_resource[i]=0;
 		p->waiting_resource[i]=0;
@@ -46,6 +47,6 @@ int init(){
 	add->next=NULL;
 	running=add;
 	
-	printf("* process init is running");
+	printf("* process init is running\n");
 	return 0;
 }
