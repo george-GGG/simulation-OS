@@ -62,8 +62,8 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两�
 	int priority;
 	int n;//number of resource
 	printf("designed by GeorgeGGG\n");
-	printf("input 'exit' to exit\n\n");
-	printf("************************************\n");
+	printf("type 'help' to get help,type 'exit' to exit\n\n");
+	printf("********************************************\n");
 	
 	while(1){
 		//input
@@ -82,7 +82,12 @@ int test_shell(){//要调用进程管理和资源管理器，所以放在前两�
 
 		if (!strcmp(cmd,"init"))
 			init();
-
+		else if (!strcmp(cmd,"help"))
+			printf("********************************************\n-cr <pid> <priority>    :create a process\n\
+-de <pid>    :destroy a process and its children\n-exit    :exit\n-help    :help\n-init    :init the system and create the init process\n\
+-list\n    block    :list the block processes\n    res    :list the resources available\n    ready    :list the ready processes\n\
+-req <rid> <qauntity>    :running process request resource\n-rel <rid> <qauntity>    :running process release resource\n\
+-to    :time out\n********************************************\n");
 		else if (!strcmp(cmd,"cr")){
 			para1=strtok(NULL," ");
 			para2=strtok(NULL," ");
