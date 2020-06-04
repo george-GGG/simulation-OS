@@ -1,12 +1,27 @@
 #include<string.h>
 #include"global.h"
 
+int unique(char *PID){
+	inode *q;
+	q=comp_list->next;
+	while(q!=NULL){
+		if (strcmp(PID,q->pcb->PID)==0) return 1;
+		else q=q->next;
+	}
+	if (q==NULL) return 0;
+}
+
 int create(char* PID, int priority){
-	int i;
+	int i,judge;
 	PCB* p;//指向新创建的PCB
 	inode* q;//用于遍历各inode类型的链表
 	inode* add;//指向新建的inode节点
 
+	judge=unique(PID);
+	if (judge==1){
+		printf("process %s is already existing\n",PID);
+		return -1;
+	}
 	p=(PCB*)malloc(sizeof(PCB));//创建新PCB
 	//初始化PCB  
 	strcpy(p->PID,PID);//PID
